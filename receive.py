@@ -3,7 +3,7 @@ import base64, StringIO, sys
 from socketIO_client import SocketIO, BaseNamespace
 from PIL import Image
 from io import BytesIO
-import time
+import time, json, codecs
 import cv2
 import os
 
@@ -17,11 +17,12 @@ class Namespace(BaseNamespace):
         
 def receive_check_file(*args):
     listFile = os.listdir("/home/pi/media")
-    
-    i = 0;
+    data = []
+    fileName = {}
+    playlist = {}
     for inputt in args[0]:
-        print args
-        i = i + 1
+        fileName['fileName'] = inputt
+        data.insert(0, fileName)
         if any(inputt in l for l in listFile):
             continue;
         package = [inputt, mac]
@@ -29,7 +30,14 @@ def receive_check_file(*args):
         socketIO.wait(seconds=1)
         socketIO.emit('file', package)
         socketIO.wait(seconds=1)
-    print i
+    playlist['assets'] = data
+    json_data = json.dumps(playlist)
+    j = json.loads(json_data)
+    with codecs.open('/home/pi/media/'+args[1]+'.json', 'w', 'utf-8') as f:
+        f.write(json.loads(json.dumps(json_data, indent=2, sort_keys = True,
+                ensure_ascii=False, separators=(',',':'))))
+    print 'create json: '+args[1]+'.json'
+    
         
         
     
@@ -58,6 +66,7 @@ def getHwAddr(ifname):
     
 socketIO = SocketIO(server_ip, 8080, Namespace)
 mac = getHwAddr('eth0')
+
 
 #while True:
 socketIO.on(mac+"_check", receive_check_file)
