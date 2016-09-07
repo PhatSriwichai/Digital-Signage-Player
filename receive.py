@@ -15,14 +15,29 @@ class Namespace(BaseNamespace):
         print('on_aaa_response', args)
         self.emit('bbb')
         
+def receive_control_file(*args):
+    data = {}
+    playlist = {}
+    playlist['playlist'] = args[0]
+    data['control'] = playlist
+    json_data = json.dumps(data)
+    j = json.loads(json_data)
+    with codecs.open('/home/pi/media/control.json', 'w', 'utf-8') as f:
+        f.write(json.loads(json.dumps(json_data, indent=2, sort_keys = True,
+                ensure_ascii=False, separators=(',',':'))))
+    print 'create control json: control.json'
+        
 def receive_check_file(*args):
     listFile = os.listdir("/home/pi/media")
     data = []
-    fileName = {}
     playlist = {}
+    i=0;
     for inputt in args[0]:
+        fileName = {}
         fileName['fileName'] = inputt
-        data.insert(0, fileName)
+        #data.insert(0, fileName)
+        data.insert(i, fileName)
+        i=i+1
         if any(inputt in l for l in listFile):
             continue;
         package = [inputt, mac]
@@ -33,6 +48,7 @@ def receive_check_file(*args):
     playlist['assets'] = data
     json_data = json.dumps(playlist)
     j = json.loads(json_data)
+    
     with codecs.open('/home/pi/media/'+args[1]+'.json', 'w', 'utf-8') as f:
         f.write(json.loads(json.dumps(json_data, indent=2, sort_keys = True,
                 ensure_ascii=False, separators=(',',':'))))
@@ -72,5 +88,7 @@ mac = getHwAddr('eth0')
 socketIO.on(mac+"_check", receive_check_file)
 socketIO.wait(seconds=1)
 socketIO.on(mac, receive_file)
-socketIO.wait(seconds=1) 
+socketIO.wait(seconds=1)
+socketIO.on(mac+"_control", receive_control_file)
+socketIO.wait(seconds=1)
 socketIO.wait() 
