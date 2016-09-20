@@ -36,23 +36,36 @@ def receive_control_file(*args):
         socketIO.wait(seconds=1)
         
 def receive_check_file(*args):
+    print args
     listFile = os.listdir("/home/pi/media")
     data = []
     playlist = {}
     i=0;
     global countFile
     countFile = 0
-    for inputt in args[0]:
+    
+    for inputt in args[0][0]:
         if any(inputt in l for l in listFile):
             continue;
         countFile = countFile+1
     print "CountFile = %d check_file" % countFile
-    for inputt in args[0]:
+    pack = []
+
+    k=0
+    for inputt in args[0][0]:
+        print "input = "+inputt
         fileName = {}
+        form = {}
         fileName['fileName'] = inputt
+        fileName['format'] = args[0][1][k]
+        k=k+1
         #data.insert(0, fileName)
-        data.insert(i, fileName)
+        data.insert(0, fileName)
+        #data.insert(0, form)
+        #print data
+        pack.insert(0, data)
         i=i+1
+        #print i
         if any(inputt in l for l in listFile):
             continue;
         #countFile = countFile+1
@@ -63,6 +76,7 @@ def receive_check_file(*args):
         socketIO.wait(seconds=1)
         #print "CountFile = %d check_file" % countFile
     playlist['assets'] = data
+    #print pack
     json_data = json.dumps(playlist)
     j = json.loads(json_data)
     
@@ -105,6 +119,7 @@ def getHwAddr(ifname):
     
 socketIO = SocketIO(server_ip, 8080, Namespace)
 mac = getHwAddr('eth0')
+print mac
 
 
 

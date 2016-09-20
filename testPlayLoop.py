@@ -23,9 +23,14 @@ while(1):
     listFile = []
     for i in range(0,len(playlist['assets'])):
         listFile.insert(0, playlist['assets'][i]['fileName'])
+        print 'playing' + playlist['assets'][i]['fileName']
+        if(playlist['assets'][i]['format'] == 'file'):
+            a = subprocess.call( [ "omxplayer", "-o", "both", "-b", '/home/pi/media/'+playlist['assets'][i]['fileName']])
+        else:
+            a = subprocess.call( [ "omxplayer", "-o", "both", "-b", playlist['assets'][i]['fileName']])
     #print listFile
             
     for infile in listFile:
         print infile
-        a = subprocess.call( [ "omxplayer", "-o", "both", "-b", '/home/pi/media/'+infile])
+        
 
