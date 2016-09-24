@@ -58,6 +58,7 @@ def receive_check_file(*args):
         form = {}
         fileName['fileName'] = inputt
         fileName['format'] = args[0][1][k]
+        fileName['type'] = args[0][2][k]
         k=k+1
         #data.insert(0, fileName)
         data.insert(0, fileName)
