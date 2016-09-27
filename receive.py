@@ -36,7 +36,51 @@ def receive_control_file(*args):
         socketIO.wait(seconds=1)
         
 def receive_check_file(*args):
-    print args
+    print type(args[0][3][0].encode('utf8'))
+    text = args[0][3][0]
+    if args[0][3][1] != 'none':
+        stringHTML = "<!DOCTYPE html>"
+        stringHTML += "<html style=\"height:100%\">"
+        stringHTML += "<head>"
+        stringHTML += "<meta http-equiv=\"Content-Langauge\" content=\"th\""
+        stringHTML += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=window-874\""
+        stringHTML += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=tis-620\""
+        stringHTML += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\""
+        stringHTML += "</head>"
+        stringHTML += "<body style=\"height:100%; overflow:hidden; background-color:black\">"
+        stringHTML += "<section style=\"height:93%\"></section>"
+        stringHTML += "<aside style=\"height:10%\">"
+        stringHTML += "<marquee bgcolor=\"#000000\" align=\"bottom\" vspace=0 behavior=\""+args[0][3][1]+"\""
+        stringHTML += "direction=\"left\" scollamount=\"20\">"
+        stringHTML += "<font color=\"#ffffff\" size=\"6\">"+text+"</font>"
+        stringHTML += "</marquee>"
+        stringHTML += "</aside>"
+        stringHTML += "</body>"
+        stringHTML += "</html>"
+        with codecs.open('/home/pi/media/ticker/'+args[1]+'_ticker.html', 'w', encoding='utf-8') as f:
+            f.write(stringHTML)
+    else:
+        stringHTML = "<!DOCTYPE html>"
+        stringHTML += "<html style=\"height:100%\">"
+        stringHTML += "<head>"
+        stringHTML += "<meta http-equiv=\"Content-Langauge\" content=\"th\""
+        stringHTML += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=window-874\""
+        stringHTML += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=tis-620\""
+        stringHTML += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\""
+        stringHTML += "</head>"
+        stringHTML += "<body style=\"height:100%; overflow:hidden; background-color:black\">"
+        stringHTML += "<section style=\"height:93%\"></section>"
+        stringHTML += "<aside style=\"height:10%\">"
+        stringHTML += "<marquee align=\"bottom\" vspace=0 behavior=\"scoll\""
+        stringHTML += "direction=\"left\" scollamount=\"20\">"
+        stringHTML += "<font size=\"6\"></font>"
+        stringHTML += "</marquee>"
+        stringHTML += "</aside>"
+        stringHTML += "</body>"
+        stringHTML += "</html>"
+        with codecs.open('/home/pi/media/ticker/'+args[1]+'_ticker.html', 'w', encoding='utf-8') as f:
+            f.write(stringHTML)
+        
     listFile = os.listdir("/home/pi/media")
     data = []
     playlist = {}
@@ -60,24 +104,21 @@ def receive_check_file(*args):
         fileName['format'] = args[0][1][k]
         fileName['type'] = args[0][2][k]
         k=k+1
-        #data.insert(0, fileName)
         data.insert(0, fileName)
-        #data.insert(0, form)
-        #print data
         pack.insert(0, data)
         i=i+1
-        #print i
         if any(inputt in l for l in listFile):
             continue;
-        #countFile = countFile+1
         package = [inputt, mac]
         socketIO.emit('route', 'file')
         socketIO.wait(seconds=1)
         socketIO.emit('file', package)
         socketIO.wait(seconds=1)
-        #print "CountFile = %d check_file" % countFile
+    ticker = {};
+    ticker['message'] = args[0][3][0]
+    ticker['behavior'] = args[0][3][1]
     playlist['assets'] = data
-    #print pack
+    playlist['ticker'] = ticker
     json_data = json.dumps(playlist)
     j = json.loads(json_data)
     
