@@ -103,6 +103,7 @@ def receive_check_file(*args):
         fileName['fileName'] = inputt
         fileName['format'] = args[0][1][k]
         fileName['type'] = args[0][2][k]
+        fileName['position'] = args[0][4][k]
         k=k+1
         data.insert(0, fileName)
         pack.insert(0, data)
@@ -119,6 +120,7 @@ def receive_check_file(*args):
     ticker['behavior'] = args[0][3][1]
     playlist['assets'] = data
     playlist['ticker'] = ticker
+    playlist['layout'] = args[0][5][0]
     json_data = json.dumps(playlist)
     j = json.loads(json_data)
     

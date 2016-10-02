@@ -29,6 +29,7 @@ def receive_action(*args):
     if(args[0] == 'play'):
         subprocess.Popen.kill(play)
         subprocess.call(["killall", "omxplayer"])
+        subprocess.call(["killall", "feh"])
         subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
         time.sleep(1)
         global play
