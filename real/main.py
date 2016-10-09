@@ -175,7 +175,7 @@ def receive_action(*args):
     try:
         print control['control']['playlist']
         ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
-        time.sleep(10)
+        #time.sleep(10)
     except:
         print "Main No ticker"
     if(args[0] == 'play'):
@@ -210,7 +210,7 @@ socketIO = SocketIO(server_ip, server_port, Namespace)
 
 
 ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
-time.sleep(5)
+#time.sleep(5)
 play = subprocess.Popen(["python", "mainPlay.py"], shell=False)
 leftSlide = subprocess.Popen(["python", 'toLeftSlide.py'], shell=False)
 mac = getHwAddr('eth0')

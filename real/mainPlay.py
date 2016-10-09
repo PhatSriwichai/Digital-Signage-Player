@@ -37,6 +37,21 @@ while(1):
             position = '0 0 '+str(int(float(width)*0.75))+' '+str(height)
         else:
             position = '0 0 '+str(int(float(width)*0.75))+' '+str(float(height)*0.9)
+    elif(playlist['layout'] == '2b'):
+        if(playlist['ticker']['behavior'] == 'none'):
+            position = "%d %d %d %d" % (int(float(width)*0.25), 0, int(width), height)
+        else:
+            position = "%d %d %d %d" % (int(float(width)*0.25), 0, int(width), int(float(height)*0.9))
+    elif(playlist['layout'] == '3a'):
+        if(playlist['ticker']['behavior'] == 'none'):
+            position = "%d %d %d %d" % (0, int(float(height)*0.2), int(width), height)
+        else:
+            position = "%d %d %d %d" % (0, int(float(height)*0.2), int(width), int(float(height)*0.9))
+    elif(playlist['layout'] == '3b'):
+        if(playlist['ticker']['behavior'] == 'none'):
+            position = "%d %d %d %d" % (0, 0, int(width), int(float(height)*0.8))
+        else:
+            position = "%d %d %d %d" % (0, 0, int(width), int(float(height)*0.7))
         #position = '0 0 '+str(int(float(width)*0.75))+' '+str(height)
         
 
