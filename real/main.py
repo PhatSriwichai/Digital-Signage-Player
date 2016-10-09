@@ -39,9 +39,9 @@ def receive_control_file(*args):
         socketIO.wait(seconds=1)
         
 def receive_check_file(*args):
-    print type(args[0][3][0].encode('utf8'))
-    text = args[0][3][0]
-    if args[0][3][1] != 'none':
+    print type(args[0][4][0].encode('utf8'))
+    text = args[0][4][0]
+    if args[0][4][1] != 'none':
         stringHTML = "<!DOCTYPE html>"
         stringHTML += "<html style=\"height:100%\">"
         stringHTML += "<head>"
@@ -106,7 +106,8 @@ def receive_check_file(*args):
         fileName['fileName'] = inputt
         fileName['format'] = args[0][1][k]
         fileName['type'] = args[0][2][k]
-        fileName['position'] = args[0][4][k]
+        fileName['time'] = args[0][3][k]
+        fileName['position'] = args[0][5][k]
         k=k+1
         data.insert(0, fileName)
         pack.insert(0, data)
@@ -119,11 +120,11 @@ def receive_check_file(*args):
         socketIO.emit('file', package)
         socketIO.wait(seconds=1)
     ticker = {};
-    ticker['message'] = args[0][3][0]
-    ticker['behavior'] = args[0][3][1]
+    ticker['message'] = args[0][4][0]
+    ticker['behavior'] = args[0][4][1]
     playlist['assets'] = data
     playlist['ticker'] = ticker
-    playlist['layout'] = args[0][5][0]
+    playlist['layout'] = args[0][6][0]
     json_data = json.dumps(playlist)
     j = json.loads(json_data)
     

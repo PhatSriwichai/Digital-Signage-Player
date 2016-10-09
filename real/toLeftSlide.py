@@ -33,6 +33,10 @@ while True:
                     f.write(playlist['assets'][i]['fileName'])
     
                 a = subprocess.Popen(['python', 'leftSlide.py'])
-                time.sleep(10)
+                timesec = int(playlist['assets'][i]['time'])
+                if(timesec == -1):
+                    while True:
+                        x = 0; 
+                time.sleep(timesec)
                 subprocess.Popen.kill(a)
                 subprocess.call(["pkill", "-f", playlist['assets'][i]['fileName']])
