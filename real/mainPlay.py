@@ -39,12 +39,12 @@ while(1):
             position = '0 0 '+str(int(float(width)*0.75))+' '+str(float(height)*0.9)
     elif(playlist['layout'] == '2b'):
         if(playlist['ticker']['behavior'] == 'none'):
-            position = "%d %d %d %d" % (int(float(width)*0.25), 0, int(width), height)
+            position = "%d %d %d %d" % (int(float(width)*0.25), 0, int(width), int(height))
         else:
             position = "%d %d %d %d" % (int(float(width)*0.25), 0, int(width), int(float(height)*0.9))
     elif(playlist['layout'] == '3a'):
         if(playlist['ticker']['behavior'] == 'none'):
-            position = "%d %d %d %d" % (0, int(float(height)*0.2), int(width), height)
+            position = "%d %d %d %d" % (0, int(float(height)*0.2), int(width), int(height))
         else:
             position = "%d %d %d %d" % (0, int(float(height)*0.2), int(width), int(float(height)*0.9))
     elif(playlist['layout'] == '3b'):
@@ -62,22 +62,40 @@ while(1):
                 listFile.insert(0, playlist['assets'][i]['fileName'])
             print 'playing' + playlist['assets'][i]['fileName']
 
-            if(playlist['assets'][i]['type'] == 'video'):
-                if(playlist['assets'][i]['format'] == 'file'):
-                    a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", '/home/pi/media/'+playlist['assets'][i]['fileName']])
+            if(playlist['assets'][i]['type'] != 'image'):
+                timesec = int(playlist['assets'][i]['time'])
+                if(timesec == -1):
+                    if(playlist['assets'][i]['format'] == 'file'):
+                        a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", '/home/pi/media/'+playlist['assets'][i]['fileName']])
+                    else:
+                        a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", playlist['assets'][i]['fileName']])
                 else:
-                    a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", playlist['assets'][i]['fileName']])
+                    fileName = {}
+                    fileName['name'] = playlist['assets'][i]['fileName']
+                    fileName['format'] = playlist['assets'][i]['format']
+                    json_data = json.dumps(fileName)
+                    j = json.loads(json_data)
+                    with codecs.open('/home/pi/media/videoShow.json', 'w', 'utf-8') as f:
+                        f.write(json.loads(json.dumps(json_data, indent=2, sort_keys = True,ensure_ascii=False, separators=(',',':'))))
+                    a = subprocess.Popen(["python", 'mainVideo.py'])
+                    time.sleep(timesec)
+                    subprocess.Popen.kill(a)
+                    subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
+                    
             elif(playlist['assets'][i]['type'] == 'image' and playlist['assets'][i]['position'] == 'M'):
                 with codecs.open('/home/pi/media/imageShow.txt', 'w', 'utf-8') as f:
                     f.write(playlist['assets'][i]['fileName'])
                     
                 if(playlist['assets'][i]['format'] == 'file'):
-                    a = subprocess.Popen(["python", 'testImageLoop.py'])
+                    a = subprocess.Popen(["python", 'mainImage.py'])
                 else:
-                    a = subprocess.Popen(["python", 'testImageLoop.py'])
-                time.sleep(30)
+                    a = subprocess.Popen(["python", 'mainImage.py'])
+                timesec = int(playlist['assets'][i]['time'])
+                if(timesec == -1):
+                    timesec = 60 
+                time.sleep(timesec)
                 subprocess.Popen.kill(a)
-                subprocess.call(["killall", "feh"])
+                subprocess.call(["pkill", "-f", playlist['assets'][i]['fileName']])
     else:
         for i in range(0,len(playlist['assets'])):
             listFile.insert(0, playlist['assets'][i]['fileName'])
@@ -96,9 +114,12 @@ while(1):
                     a = subprocess.Popen(["python", 'mainImage.py'])
                 else:
                     a = subprocess.Popen(["python", 'mainImage.py'])
-                time.sleep(20)
+                timesec = int(playlist['assets'][i]['time'])
+                if(timesec == -1):
+                    timesec = 60 
+                time.sleep(timesec)
                 subprocess.Popen.kill(a)
-                subprocess.call(["killall", "feh"])
+                subprocess.call(["pkill", "-f", playlist['assets'][i]['fileName']])
             
     #print listFile
             

@@ -38,6 +38,24 @@ elif(playlist['layout'] == '2a'):
         position = "%dx%s+%d+%d" % (int(width)-int(float(width)*0.25), height, 0, 0)
     else:
         position = "%dx%d+%d+%d" % (int(width)-int(float(width)*0.25), int(float(height)*0.87), 0, 0)
+elif(playlist['layout'] == '2b'):
+    if(playlist['ticker']['behavior'] == 'none'):
+        #position = str(width-int(float(width)*0.75))+'x'+str(height)+'+'+str(int(float(width)*0.75))+'+0'
+        position = "%dx%d+%d+%d" % (int(width)-int(float(width)*0.25), int(height), int(float(width)*0.25), 0)
+    else:
+        position = "%dx%d+%d+%d" % (int(width)-int(float(width)*0.25), int(float(height)*0.87), int(float(width)*0.25), 0)
+elif(playlist['layout'] == '3a'):
+    if(playlist['ticker']['behavior'] == 'none'):
+        #position = str(width-int(float(width)*0.75))+'x'+str(height)+'+'+str(int(float(width)*0.75))+'+0'
+        position = "%dx%d+%d+%d" % (int(width), int(float(height)*0.8), 0, int(float(height)*0.2))
+    else:
+        position = "%dx%d+%d+%d" % (int(width), int(float(height)*0.7), 0, int(float(height)*0.2))
+elif(playlist['layout'] == '3b'):
+    if(playlist['ticker']['behavior'] == 'none'):
+        #position = str(width-int(float(width)*0.75))+'x'+str(height)+'+'+str(int(float(width)*0.75))+'+0'
+        position = "%dx%d+%d+%d" % (int(width), int(float(height)*0.8), 0, 0)
+    else:
+        position = "%dx%d+%d+%d" % (int(width), int(float(height)*0.7), 0, 0)
         
 
 
