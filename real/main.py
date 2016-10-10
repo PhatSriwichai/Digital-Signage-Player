@@ -34,6 +34,7 @@ def receive_control_file(*args):
     global i
     i = i + 1
     global countFile
+    print countFile
     if(countFile == 0):
         socketIO.emit('action', 'play')
         socketIO.wait(seconds=1)
@@ -53,7 +54,7 @@ def receive_check_file(*args):
         stringHTML += "<body style=\"height:100%; overflow:hidden; background-color:black\">"
         stringHTML += "<section style=\"height:93%\"></section>"
         stringHTML += "<aside style=\"height:10%\">"
-        stringHTML += "<marquee bgcolor=\"#000000\" align=\"bottom\" vspace=0 behavior=\""+args[0][3][1]+"\""
+        stringHTML += "<marquee bgcolor=\"#000000\" align=\"bottom\" vspace=0 behavior=\""+args[0][4][1]+"\""
         stringHTML += "direction=\"left\" scollamount=\"20\">"
         stringHTML += "<font color=\"#ffffff\" size=\"6\">"+text+"</font>"
         stringHTML += "</marquee>"
@@ -108,17 +109,20 @@ def receive_check_file(*args):
         fileName['type'] = args[0][2][k]
         fileName['time'] = args[0][3][k]
         fileName['position'] = args[0][5][k]
+        print args[0][1][k]
         k=k+1
         data.insert(0, fileName)
         pack.insert(0, data)
         i=i+1
+        
         if any(inputt in l for l in listFile):
             continue;
-        package = [inputt, mac]
-        socketIO.emit('route', 'file')
-        socketIO.wait(seconds=1)
-        socketIO.emit('file', package)
-        socketIO.wait(seconds=1)
+        if(args[0][1][k-1] != 'url'):
+            package = [inputt, mac]
+            socketIO.emit('file', package)
+            socketIO.wait(seconds=1)
+        else:
+            countFile = countFile-1
     ticker = {};
     ticker['message'] = args[0][4][0]
     ticker['behavior'] = args[0][4][1]
