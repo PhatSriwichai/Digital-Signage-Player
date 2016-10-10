@@ -16,14 +16,14 @@ while(1):
         control = json.loads(json_data)
         #print control['control']['playlist']
     except:
-        print "No Control"
+        print "mainPlay No Control"
 
     try:
         json_data = open('/home/pi/media/'+control['control']['playlist']+'.json').read()
         playlist = json.loads(json_data)
         #print playlist['assets'][0]['fileName']
     except:
-        print "no Media"
+        print "mainPlay no Media"
             
     listFile = []
 
@@ -56,74 +56,63 @@ while(1):
         
 
     
-    if(playlist['ticker']['behavior'] == 'none'):
-        for i in range(0,len(playlist['assets'])):
-            if(playlist['assets'][i]['position'] == 'M'):
-                listFile.insert(0, playlist['assets'][i]['fileName'])
-            print 'playing' + playlist['assets'][i]['fileName']
-
-            if(playlist['assets'][i]['type'] != 'image'):
-                timesec = int(playlist['assets'][i]['time'])
-                if(timesec == -1):
-                    if(playlist['assets'][i]['format'] == 'file'):
-                        a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", '/home/pi/media/'+playlist['assets'][i]['fileName']])
-                    else:
-                        a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", playlist['assets'][i]['fileName']])
-                else:
-                    fileName = {}
-                    fileName['name'] = playlist['assets'][i]['fileName']
-                    fileName['format'] = playlist['assets'][i]['format']
-                    json_data = json.dumps(fileName)
-                    j = json.loads(json_data)
-                    with codecs.open('/home/pi/media/videoShow.json', 'w', 'utf-8') as f:
-                        f.write(json.loads(json.dumps(json_data, indent=2, sort_keys = True,ensure_ascii=False, separators=(',',':'))))
-                    a = subprocess.Popen(["python", 'mainVideo.py'])
-                    time.sleep(timesec)
-                    subprocess.Popen.kill(a)
-                    subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
-                    
-            elif(playlist['assets'][i]['type'] == 'image' and playlist['assets'][i]['position'] == 'M'):
-                with codecs.open('/home/pi/media/imageShow.txt', 'w', 'utf-8') as f:
-                    f.write(playlist['assets'][i]['fileName'])
-                    
-                if(playlist['assets'][i]['format'] == 'file'):
-                    a = subprocess.Popen(["python", 'mainImage.py'])
-                else:
-                    a = subprocess.Popen(["python", 'mainImage.py'])
-                timesec = int(playlist['assets'][i]['time'])
-                if(timesec == -1):
-                    timesec = 60 
-                time.sleep(timesec)
-                subprocess.Popen.kill(a)
-                subprocess.call(["pkill", "-f", playlist['assets'][i]['fileName']])
-    else:
-        for i in range(0,len(playlist['assets'])):
+   
+    for i in range(0,len(playlist['assets'])):
+        if(playlist['assets'][i]['position'] == 'M'):
             listFile.insert(0, playlist['assets'][i]['fileName'])
-            print 'playing' + playlist['assets'][i]['fileName']
+        print 'playing ' + playlist['assets'][i]['fileName']
+        pathFile = ' '
+        if(playlist['assets'][i]['type'] != 'image'):
+            if(playlist['assets'][i]['type'] == 'youtube'):
+                pathFile = open('/home/pi/media/'+playlist['assets'][i]['fileName']).read()
+                command = "youtube-dl -g -f best %s" % pathFile
+                yt = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+                pathFile, err = yt.communicate()
+                pathFile = pathFile.rstrip()
+                #pathFile = subprocess.check_output(["youtube-dl", "-g", "-f", "best", open('/home/pi/media/'+playlist['assets'][i]['fileName']).read()])
+            elif(playlist['assets'][i]['type'] == 'other'):
+                pathFile =  open('/home/pi/media/'+playlist['assets'][i]['fileName']).read()
 
-            if(playlist['assets'][i]['type'] == 'video'):
-                if(playlist['assets'][i]['format'] == 'file'):
-                    a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", '/home/pi/media/'+playlist['assets'][i]['fileName']])
-                else:
-                    a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", playlist['assets'][i]['fileName']])
-            elif(playlist['assets'][i]['type'] == 'image' and playlist['assets'][i]['position'] == 'M' ):
-                with codecs.open('/home/pi/media/imageShow.txt', 'w', 'utf-8') as f:
-                    f.write(playlist['assets'][i]['fileName'])
+            if(playlist['assets'][i]['format'] == 'file' and playlist['assets'][i]['type'] == 'video'):
+                pathFile = '/home/pi/media/'+playlist['assets'][i]['fileName']
+            elif(playlist['assets'][i]['format'] == 'url' and playlist['assets'][i]['type'] == 'video'):
+                pathFile = playlist['assets'][i]['fileName']
+    
                     
-                if(playlist['assets'][i]['format'] == 'file'):
-                    a = subprocess.Popen(["python", 'mainImage.py'])
-                else:
-                    a = subprocess.Popen(["python", 'mainImage.py'])
-                timesec = int(playlist['assets'][i]['time'])
-                if(timesec == -1):
-                    timesec = 60 
+            timesec = int(playlist['assets'][i]['time'])
+            if(timesec == -1):
+                a = subprocess.call( [ "omxplayer", "--win", position, "-o", "both", pathFile])
+            else:
+                if(playlist['assets'][i]['type'] == 'youtube'):
+                    timesec = timesec+10
+                fileName = {}
+                fileName['name'] = playlist['assets'][i]['fileName']
+                fileName['format'] = playlist['assets'][i]['format']
+                fileName['type'] = playlist['assets'][i]['type']
+                json_data = json.dumps(fileName)
+                j = json.loads(json_data)
+                with codecs.open('/home/pi/media/videoShow.json', 'w', 'utf-8') as f:
+                    f.write(json.loads(json.dumps(json_data, indent=2, sort_keys = True,ensure_ascii=False, separators=(',',':'))))
+                a = subprocess.Popen(["python", 'mainVideo.py'])
                 time.sleep(timesec)
                 subprocess.Popen.kill(a)
-                subprocess.call(["pkill", "-f", playlist['assets'][i]['fileName']])
-            
-    #print listFile
-            
-    for infile in listFile:
-        print infile
-        
+                subprocess.call(["killall", "omxplayer"])
+                subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
+                    
+        elif(playlist['assets'][i]['type'] == 'image' and playlist['assets'][i]['position'] == 'M'):
+            with codecs.open('/home/pi/media/imageShow.txt', 'w', 'utf-8') as f:
+                f.write(playlist['assets'][i]['fileName'])
+                    
+            if(playlist['assets'][i]['format'] == 'file'):
+                a = subprocess.Popen(["python", 'mainImage.py'])
+            else:
+                a = subprocess.Popen(["python", 'mainImage.py'])
+            timesec = int(playlist['assets'][i]['time'])
+            if(timesec == -1):
+                timesec = 60 
+            time.sleep(timesec)
+            subprocess.Popen.kill(a)
+            subprocess.call(["pkill", "-f", playlist['assets'][i]['fileName']])
+    
+               
 

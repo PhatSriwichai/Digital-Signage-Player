@@ -15,14 +15,14 @@ try:
     control = json.loads(json_data)
     #print control['control']['playlist']
 except:
-    print "No Control"
+    print "leftSide No Control"
 
 try:
     json_data = open('/home/pi/media/'+control['control']['playlist']+'.json').read()
     playlist = json.loads(json_data)
     #print playlist['assets'][0]['fileName']
 except:
-    print "no Media"
+    print "leftSide no Media"
 
 
 if(playlist['layout'] == '1'):

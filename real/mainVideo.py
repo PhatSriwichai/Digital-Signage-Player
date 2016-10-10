@@ -16,21 +16,21 @@ while(1):
         control = json.loads(json_data)
         #print control['control']['playlist']
     except:
-        print "No Control"
+        print "mainVideo No Control"
 
     try:
         json_data = open('/home/pi/media/'+control['control']['playlist']+'.json').read()
         playlist = json.loads(json_data)
         #print playlist['assets'][0]['fileName']
     except:
-        print "no Media"
+        print "mainVideo no Media"
         
     try:
         json_data = open('/home/pi/media/videoShow.json').read()
         fileName = json.loads(json_data)
         #print playlist['assets'][0]['fileName']
     except:
-        print "no Media"
+        print "mainVideo no show"
             
     listFile = []
 
@@ -60,13 +60,29 @@ while(1):
         else:
             position = "%d %d %d %d" % (0, 0, int(width), int(float(height)*0.7))
         #position = '0 0 '+str(int(float(width)*0.75))+' '+str(height)
-        
 
-    if(playlist['ticker']['behavior'] == 'none'):
-        if(fileName['format'] == 'file'):
-            a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", '/home/pi/media/'+fileName['name']])
-        else:
-            a = subprocess.call( [ "omxplayer", "--win", position, "-o", "hdmi", fileName['name']])
+    pathFile = ' '
+    if(fileName['type'] == 'youtube'):
+        pathFile = open('/home/pi/media/'+fileName['name']).read()
+        command = "youtube-dl -g -f best %s" % pathFile
+        yt = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+        pathFile, err = yt.communicate()
+        pathFile = pathFile.rstrip()
+        print pathFile
+    elif(fileName['type'] == 'other'):
+        pathFile = open('/home/pi/media/'+fileName['name']).read()
+
+    if(fileName['format'] == 'file' and fileName['type'] == 'video'):
+        pathFile = '/home/pi/media/'+fileName['name']
+    elif(fileName['format'] == 'url' and fileName['type'] == 'video'):
+         pathFile = fileName['name']
+    
+
+    
+    if(fileName['format'] == 'file'):
+        a = subprocess.call( [ "omxplayer", "--win", position, "-o", "both", pathFile])
+    else:
+        a = subprocess.call( [ "omxplayer", "--win", position, "-o", "both", pathFile])
             
     
 
