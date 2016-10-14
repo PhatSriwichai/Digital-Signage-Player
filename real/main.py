@@ -1,6 +1,7 @@
 import os, subprocess, sys
 import socket, fcntl, struct
 import glob, json, time, codecs
+import datetime
 from PIL import Image
 from io import BytesIO
 from socketIO_client import SocketIO, BaseNamespace
@@ -9,7 +10,9 @@ server_ip = '192.168.137.2'
 server_port = 8080
 action = 'no action'
 
-
+state = 1
+state2 = 0
+playlistIndex = 0
 countFile = 0
 i = 0
 
@@ -36,7 +39,8 @@ def receive_control_file(*args):
     global countFile
     print countFile
     if(countFile == 0):
-        socketIO.emit('action', 'play')
+        message = ['play', mac]
+        socketIO.emit('action', message)
         socketIO.wait(seconds=1)
         
 def receive_check_file(*args):
@@ -153,39 +157,79 @@ def receive_file(*args):
         videoName = args[0].encode('utf-8')
         with open('/home/pi/media/'+videoName, 'wb') as vi:
             vi.write(videoData)
-        cap = cv2.VideoCapture('/home/pi/media/'+videoName)
-        success, frame = cap.read()
+        #cap = cv2.VideoCapture('/home/pi/media/'+videoName)
+        #success, frame = cap.read()
         print success
     print('success')
     global countFile
     countFile = countFile-1
     print "CountFile = %d receive_file" % countFile
     if(countFile == 0):
-        socketIO.emit('action', 'play')
+        message = ['play', mac]
+        socketIO.emit('action', message)
         socketIO.wait(seconds=1)
+
+def receive_schedule(*args):
+    schedule = []
+    for i in range(0, len(args[0][0])):
+        playlist = {}
+        playlist['playlistName']    = args[0][0][i]
+        playlist['dateStart']       = args[0][1][i]
+        playlist['timeStart']       = args[0][2][i]
+        playlist['dateEnd']         = args[0][3][i]
+        playlist['timeEnd']        = args[0][4][i]
+        schedule.insert(0, playlist)
+    json_data = json.dumps(schedule)
+    j = json.loads(json_data)
+    
+    with codecs.open('/home/pi/media/schedule.json', 'w', 'utf-8') as f:
+        f.write(json.loads(json.dumps(json_data, indent=2, sort_keys = True,
+                ensure_ascii=False, separators=(',',':'))))
+    print 'create json: schedule.json'
+        
+        
+    
 
 def getHwAddr(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', ifname[:15]))
     return ':'.join(['%02x' % ord(char) for char in info[18:24]])
 
+def restart_playlist():
+    subprocess.call(["pkill", "-f", "mainPlay.py"])
+    subprocess.call(["pkill", "-f", "mainVideo.py"])
+    subprocess.call(["pkill", "-f", "toLeftSlide.py"])
+    subprocess.call(["pkill", "-f", "leftSlide.py"])
+    subprocess.call(["pkill", "-f", "mainImage.py"])
+    subprocess.call(["killall", "omxplayer"])
+    subprocess.call(["killall", "feh"])
+    subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
+    time.sleep(1)
+    return
+
 def receive_action(*args):
     #print args[0]
     try:
-        json_data = open('/home/pi/media/control.json').read()
+        json_data = open('/home/pi/media/schedule_playlist_control.json').read()
         control = json.loads(json_data)
     except:
-        print "Main No Control"
+        try:
+            json_data = open('/home/pi/media/control.json').read()
+            control = json.loads(json_data)
+            #print control['control']['playlist']
+        except:
+            print "Main No Control"
 
     try:
         print control['control']['playlist']
         ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
-        #time.sleep(10)
+        
     except:
         print "Main No ticker"
     if(args[0] == 'play'):
-        #subprocess.Popen.kill(play)
+        subprocess.Popen.kill(play)
         subprocess.call(["pkill", "-f", "mainPlay.py"])
+        subprocess.call(["pkill", "-f", "mainVideo.py"])
         subprocess.call(["pkill", "-f", "toLeftSlide.py"])
         subprocess.call(["pkill", "-f", "leftSlide.py"])
         subprocess.call(["pkill", "-f", "mainImage.py"])
@@ -199,6 +243,65 @@ def receive_action(*args):
         time.sleep(1)
     #elif(args[0] == 'play'):
 
+def change_date(date):
+    date = date[0:date.index('T')]
+    won = str(int(date[8:10]) + 1)
+    date = date[0:8]
+    date = date + won
+    return date
+def check_date_time():
+    dateNow = datetime.datetime.now()
+    date = dateNow.strftime('%Y-%m-%d')
+    time = dateNow.strftime('%H:%M:%S')
+
+    try:
+        json_data = open('/home/pi/media/schedule.json').read()
+        schedule = json.loads(json_data)
+        playlist = {}
+        state = 1
+        for i in range(0, len(schedule)):
+            dateStart = change_date(schedule[i]['dateStart'])
+            timeStart = schedule[i]['timeStart']
+            dateEnd = change_date(schedule[i]['dateEnd'])
+            timeEnd = schedule[i]['timeEnd']
+            if(date >= dateStart and date <= dateEnd):
+                if(time > timeStart and time <= timeEnd):
+                    print 'Playing '+schedule[i]['playlistName']
+                    playlist['playlist'] = schedule[i]['playlistName']
+                    if(i != playlistIndex):
+                        global playlistIndex
+                        playlistIndex = i
+                        state2 = 0
+                    global state
+                    state = 0
+                    break;
+        if(state == 0 and state2 == 0):
+            data = {}
+            data['control'] = playlist
+            json_data = json.dumps(data)
+            j = json.loads(json_data)
+            with codecs.open('/home/pi/media/schedule_playlist_control.json', 'w', 'utf-8') as f:
+                f.write(json.loads(json.dumps(json_data, indent=2, sort_keys = True,
+                        ensure_ascii=False, separators=(',',':'))))
+            print 'create schedule_playlist_control.json'
+            print 'restart'
+            global state2
+            state2 = 1
+            message = ['play', mac]
+            socketIO.emit('action', message)
+            socketIO.wait(seconds=1)
+        if(state == 1):
+            try:
+                os.remove('/home/pi/media/schedule_playlist_control.json')
+                print 'delete schedule_playlist_control.json'
+            except:
+                print 'can\'t delete schedule_playlist_control.json'
+            
+    except:
+        print "main No schedule"
+
+        
+    return
   
 try:
     json_data = open('/home/pi/media/control.json').read()
@@ -209,25 +312,24 @@ except:
 
 socketIO = SocketIO(server_ip, server_port, Namespace)
 
-#time.sleep(5)
-#subprocess.Popen.kill(play)
-#subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
-
-
 ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
-#time.sleep(5)
+
 play = subprocess.Popen(["python", "mainPlay.py"], shell=False)
 leftSlide = subprocess.Popen(["python", 'toLeftSlide.py'], shell=False)
 mac = getHwAddr('eth0')
 
 while True:
+    
+    check_date_time()
     socketIO.on(mac+"_check", receive_check_file)
     socketIO.wait(seconds=1)
     socketIO.on(mac, receive_file)
     socketIO.wait(seconds=1)
     socketIO.on(mac+"_control", receive_control_file)
     socketIO.wait(seconds=1)
-    socketIO.on('action', receive_action)
+    socketIO.on(mac+'_action', receive_action)
+    socketIO.wait(seconds=1)
+    socketIO.on(mac+'_schedule', receive_schedule)
     socketIO.wait(seconds=1)
     socketIO.emit('mac', mac)
     socketIO.wait(seconds=1)
