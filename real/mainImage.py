@@ -11,11 +11,15 @@ height = screen.split()[9][:-1]
 position = ''
 
 try:
-    json_data = open('/home/pi/media/control.json').read()
+    json_data = open('/home/pi/media/schedule_playlist_control.json').read()
     control = json.loads(json_data)
-    #print control['control']['playlist']
 except:
-    print "No Control"
+    try:
+        json_data = open('/home/pi/media/control.json').read()
+        control = json.loads(json_data)
+        #print control['control']['playlist']
+    except:
+        print "mainImage No Control"
 
 try:
     json_data = open('/home/pi/media/'+control['control']['playlist']+'.json').read()
