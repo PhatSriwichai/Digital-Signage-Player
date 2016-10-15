@@ -310,14 +310,18 @@ try:
 except:
     print "Main No Control"
 
-socketIO = SocketIO(server_ip, server_port, Namespace)
+index = subprocess.Popen(["python", "genIndex.py"], shell=False)
+time.sleep(45)
+subprocess.Popen.kill(index)
+
+
 
 ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
 
 play = subprocess.Popen(["python", "mainPlay.py"], shell=False)
 leftSlide = subprocess.Popen(["python", 'toLeftSlide.py'], shell=False)
 mac = getHwAddr('eth0')
-
+socketIO = SocketIO(server_ip, server_port, Namespace)
 while True:
     
     check_date_time()
