@@ -113,7 +113,10 @@ def receive_check_file(*args):
         fileName['type'] = args[0][2][k]
         fileName['time'] = args[0][3][k]
         fileName['position'] = args[0][5][k]
-        print args[0][1][k]
+        if(args[0][7][k]!= None):
+            with open('/home/pi/media/'+inputt, 'wb') as vi:
+                vi.write(args[0][7][k])
+        print args[0][7][k]
         k=k+1
         data.insert(0, fileName)
         pack.insert(0, data)
@@ -159,7 +162,7 @@ def receive_file(*args):
             vi.write(videoData)
         #cap = cv2.VideoCapture('/home/pi/media/'+videoName)
         #success, frame = cap.read()
-        print success
+        #print success
     print('success')
     global countFile
     countFile = countFile-1
@@ -205,6 +208,10 @@ def restart_playlist():
     subprocess.call(["killall", "feh"])
     subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
     time.sleep(1)
+    ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
+    play = subprocess.Popen(["python", "mainPlay.py"])
+    leftSlide = subprocess.Popen(["python", 'toLeftSlide.py'], shell=False)
+
     return
 
 def receive_action(*args):
@@ -294,6 +301,7 @@ def check_date_time():
             try:
                 os.remove('/home/pi/media/schedule_playlist_control.json')
                 print 'delete schedule_playlist_control.json'
+                
             except:
                 print 'can\'t delete schedule_playlist_control.json'
             
@@ -311,19 +319,34 @@ except:
     print "Main No Control"
 
 index = subprocess.Popen(["python", "genIndex.py"], shell=False)
-time.sleep(45)
+time.sleep(15)
 subprocess.Popen.kill(index)
 
 
 
 ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
-
 play = subprocess.Popen(["python", "mainPlay.py"], shell=False)
 leftSlide = subprocess.Popen(["python", 'toLeftSlide.py'], shell=False)
 mac = getHwAddr('eth0')
 socketIO = SocketIO(server_ip, server_port, Namespace)
-while True:
-    
+check = 1
+num = 0
+while True:  
+    try:
+        json_data = open('/home/pi/media/schedule_playlist_control.json').read()
+        control = json.loads(json_data)
+        print "read success"
+        if num == 0:
+            check = 0
+        num = 0
+    except:
+        if check == 0 and num == 0:
+            check = 1
+            num = 1
+            restart_playlist()
+        num = 1
+            
+        
     check_date_time()
     socketIO.on(mac+"_check", receive_check_file)
     socketIO.wait(seconds=1)
