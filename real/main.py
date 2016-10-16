@@ -39,9 +39,10 @@ def receive_control_file(*args):
     global countFile
     print countFile
     if(countFile == 0):
-        message = ['play', mac]
-        socketIO.emit('action', message)
-        socketIO.wait(seconds=1)
+        #message = ['play', mac]
+        #socketIO.emit('action', message)
+        #socketIO.wait(seconds=1)
+        restart_playlist()
         
 def receive_check_file(*args):
     print type(args[0][4][0].encode('utf8'))
@@ -170,9 +171,10 @@ def receive_file(*args):
     countFile = countFile-1
     print "CountFile = %d receive_file" % countFile
     if(countFile == 0):
-        message = ['play', mac]
-        socketIO.emit('action', message)
-        socketIO.wait(seconds=1)
+        #message = ['play', mac]
+        #socketIO.emit('action', message)
+        #socketIO.wait(seconds=1)
+        restart_playlist()
 
 def receive_schedule(*args):
     schedule = []
@@ -201,6 +203,7 @@ def getHwAddr(ifname):
     return ':'.join(['%02x' % ord(char) for char in info[18:24]])
 
 def restart_playlist():
+    subprocess.Popen.kill(play)
     subprocess.call(["pkill", "-f", "mainPlay.py"])
     subprocess.call(["pkill", "-f", "mainVideo.py"])
     subprocess.call(["pkill", "-f", "toLeftSlide.py"])
@@ -210,7 +213,26 @@ def restart_playlist():
     subprocess.call(["killall", "feh"])
     subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
     time.sleep(1)
-    ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
+    try:
+        json_data = open('/home/pi/media/schedule_playlist_control.json').read()
+        control = json.loads(json_data)
+    except:
+        try:
+            json_data = open('/home/pi/media/control.json').read()
+            control = json.loads(json_data)
+            #print control['control']['playlist']
+        except:
+            print "Main No Control"
+
+    try:
+        print control['control']['playlist']
+        ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
+        
+    except:
+        print "Main No ticker"
+
+    #ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
+    global play
     play = subprocess.Popen(["python", "mainPlay.py"])
     leftSlide = subprocess.Popen(["python", 'toLeftSlide.py'], shell=False)
 
