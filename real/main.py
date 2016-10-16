@@ -60,7 +60,7 @@ def receive_check_file(*args):
         stringHTML += "<aside style=\"height:10%\">"
         stringHTML += "<marquee bgcolor=\"#000000\" align=\"bottom\" vspace=0 behavior=\""+args[0][4][1]+"\""
         stringHTML += "direction=\"left\" scollamount=\"20\">"
-        stringHTML += "<font color=\"#ffffff\" size=\"6\">"+text+"</font>"
+        stringHTML += "<font color=\"#ffffff\" size=\"7\">"+text+"</font>"
         stringHTML += "</marquee>"
         stringHTML += "</aside>"
         stringHTML += "</body>"
@@ -113,10 +113,12 @@ def receive_check_file(*args):
         fileName['type'] = args[0][2][k]
         fileName['time'] = args[0][3][k]
         fileName['position'] = args[0][5][k]
-        if(args[0][7][k]!= None):
-            with open('/home/pi/media/'+inputt, 'wb') as vi:
-                vi.write(args[0][7][k])
-        print args[0][7][k]
+        try:
+            if(args[0][7][k]!= None):
+                with open('/home/pi/media/'+inputt, 'wb') as vi:
+                    vi.write(args[0][7][k])
+        except:
+            print "no url"
         k=k+1
         data.insert(0, fileName)
         pack.insert(0, data)
@@ -315,11 +317,12 @@ try:
     json_data = open('/home/pi/media/control.json').read()
     control = json.loads(json_data)
     print "read success"
+    
 except:
     print "Main No Control"
 
 index = subprocess.Popen(["python", "genIndex.py"], shell=False)
-time.sleep(15)
+time.sleep(30)
 subprocess.Popen.kill(index)
 
 
