@@ -20,4 +20,4 @@ stringHTML += "<center><h1>MAC Address : "+mac+"</h1></center></body></html>"
 with codecs.open('/home/pi/Digital-Signage-Player/real/web/index.html', 'w', encoding='utf-8') as f:
     f.write(stringHTML)
 
-index = subprocess.Popen(["chromium-browser", "-kiosk","web/index.html"])
+index = subprocess.Popen(["chromium-browser", "--incognito","-kiosk","web/index.html"])
