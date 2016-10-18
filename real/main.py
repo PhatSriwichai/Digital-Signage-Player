@@ -45,6 +45,7 @@ def receive_control_file(*args):
         restart_playlist()
         
 def receive_check_file(*args):
+    #print args[0][0]
     print type(args[0][4][0].encode('utf8'))
     text = args[0][4][0]
     if args[0][4][1] != 'none':
@@ -57,8 +58,8 @@ def receive_check_file(*args):
         stringHTML += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\""
         stringHTML += "</head>"
         stringHTML += "<body style=\"height:100%; overflow:hidden; background-color:black\">"
-        stringHTML += "<section style=\"height:93%\"></section>"
-        stringHTML += "<aside style=\"height:10%\">"
+        stringHTML += "<section style=\"height:91%\"></section>"
+        stringHTML += "<aside style=\"height:12%\">"
         stringHTML += "<marquee bgcolor=\"#000000\" align=\"bottom\" vspace=0 behavior=\""+args[0][4][1]+"\""
         stringHTML += "direction=\"left\" scollamount=\"20\">"
         stringHTML += "<font color=\"#ffffff\" size=\"7\">"+text+"</font>"
@@ -94,12 +95,20 @@ def receive_check_file(*args):
     data = []
     playlist = {}
     i=0;
+    c = 0
     global countFile
     countFile = 0
-    
     for inputt in args[0][0]:
-        if any(inputt in l for l in listFile):
-            continue;
+        c = c+1
+        i = 0
+        for l in listFile:
+            if inputt.encode('utf-8') == l:
+                i=1
+                break
+        if i == 1:
+            continue
+        print "set count"
+        #if args[0][1][c-1] != 'url':
         countFile = countFile+1
     print "CountFile = %d check_file" % countFile
     pack = []
@@ -125,8 +134,15 @@ def receive_check_file(*args):
         pack.insert(0, data)
         i=i+1
         
-        if any(inputt in l for l in listFile):
-            continue;
+        #if any(inputt in l for l in listFile):
+            #continue;
+        x = 0
+        for l in listFile:
+            if inputt.encode('utf-8') == l:
+                x=1
+                break
+        if x == 1:
+            continue
         if(args[0][1][k-1] != 'url'):
             package = [inputt, mac]
             socketIO.emit('file', package)
@@ -203,6 +219,7 @@ def getHwAddr(ifname):
     return ':'.join(['%02x' % ord(char) for char in info[18:24]])
 
 def restart_playlist():
+    print "restart"
     subprocess.Popen.kill(play)
     subprocess.call(["pkill", "-f", "mainPlay.py"])
     subprocess.call(["pkill", "-f", "mainVideo.py"])
@@ -213,6 +230,7 @@ def restart_playlist():
     subprocess.call(["killall", "feh"])
     subprocess.call(["killall", "/usr/bin/omxplayer.bin"])
     time.sleep(1)
+    #subprocess.call(["pkill", "-f", control['control']['playlist']+"_ticker.html"])
     try:
         json_data = open('/home/pi/media/schedule_playlist_control.json').read()
         control = json.loads(json_data)
@@ -226,7 +244,8 @@ def restart_playlist():
 
     try:
         print control['control']['playlist']
-        ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
+        
+        ticker = subprocess.Popen(["chromium-browser", "--incognito", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
         
     except:
         print "Main No ticker"
@@ -240,6 +259,7 @@ def restart_playlist():
 
 def receive_action(*args):
     #print args[0]
+    #subprocess.call(["pkill", "-f", control['control']['playlist']+"_ticker.html"])
     try:
         json_data = open('/home/pi/media/schedule_playlist_control.json').read()
         control = json.loads(json_data)
@@ -253,7 +273,7 @@ def receive_action(*args):
 
     try:
         print control['control']['playlist']
-        ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
+        ticker = subprocess.Popen(["chromium-browser", "--incognito", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
         
     except:
         print "Main No ticker"
@@ -343,13 +363,15 @@ try:
 except:
     print "Main No Control"
 
+#bg = subprocess.Popen(["chromium-browser", "--incognito", "-kiosk","web/background.html"])
 index = subprocess.Popen(["python", "genIndex.py"], shell=False)
 time.sleep(30)
 subprocess.Popen.kill(index)
 
 
 
-ticker = subprocess.Popen(["chromium-browser", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
+
+ticker = subprocess.Popen(["chromium-browser", "--incognito", "-kiosk","/home/pi/media/ticker/"+control['control']['playlist']+"_ticker.html"])
 play = subprocess.Popen(["python", "mainPlay.py"], shell=False)
 leftSlide = subprocess.Popen(["python", 'toLeftSlide.py'], shell=False)
 mac = getHwAddr('eth0')

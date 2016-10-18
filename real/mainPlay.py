@@ -9,6 +9,7 @@ screen = os.popen("xrandr -q -d :0").readlines()[0]
 width = screen.split()[7]
 height = screen.split()[9][:-1]
 position = ' '
+x = 0
 while(1):
     i=0
     try:
@@ -60,8 +61,9 @@ while(1):
         
 
     
-   
+    
     for i in range(0,len(playlist['assets'])):
+        
         if(playlist['assets'][i]['position'] == 'M'):
             listFile.insert(0, playlist['assets'][i]['fileName'])
         print 'playing ' + playlist['assets'][i]['fileName']
@@ -107,14 +109,18 @@ while(1):
         elif(playlist['assets'][i]['type'] == 'image' and playlist['assets'][i]['position'] == 'M'):
             with codecs.open('/home/pi/media/imageShow.txt', 'w', 'utf-8') as f:
                 f.write(playlist['assets'][i]['fileName'])
-                    
+            x = x + 1      
             if(playlist['assets'][i]['format'] == 'file'):
                 a = subprocess.Popen(["python", 'mainImage.py'])
             else:
                 a = subprocess.Popen(["python", 'mainImage.py'])
             timesec = int(playlist['assets'][i]['time'])
-            if(timesec == -1):
-                timesec = 60 
+            if(x==1):
+                timesec = 3
+            else:
+                if(timesec == -1):
+                    timesec = 60
+                
             time.sleep(timesec)
             subprocess.Popen.kill(a)
             subprocess.call(["pkill", "-f", playlist['assets'][i]['fileName']])
